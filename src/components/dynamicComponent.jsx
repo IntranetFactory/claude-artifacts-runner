@@ -13,6 +13,16 @@ const allowedModules = {
   '@/components/ui/card': Card,
 };
 
+const ErrorDisplay = ({ error }) => (
+  <div className="p-4 border-2 border-red-500 rounded-md bg-red-50">
+    <h3 className="text-red-700 font-semibold mb-2">Transformation Error</h3>
+    <pre className="text-sm text-red-600 whitespace-pre-wrap">
+      {error.message || 'Failed to transform JSX code'}
+    </pre>
+  </div>
+);
+
+
 // Custom `require` function
 const require = (specifier) => {
   if (allowedModules[specifier]) {
@@ -63,38 +73,13 @@ export default HelloWorld;
 
 const DynamicComponent = ({ code, data }) => {
   // Function to compile and execute the JSX code
-
-  var func = loadModule(code);
-  /*
-  const executeCode = (code, data) => {
-    try {
-      // Transform JSX to executable JavaScript using Sucrase
-      const transformedCode = sucrase.transform(code, {
-        transforms: ['jsx'], // Enable JSX transformation
-      }).code;
- 
-console.log(transformedCode);
- 
-      // Wrap the transformed code in a React functional component
-      const componentFunc = new Function('React', 'data', `
-        return (() => {
-          return ${transformedCode};
-        })();
-      `);
- 
-      // Execute the function and return the rendered JSX
-      return componentFunc(React, data);
- 
-    } catch (error) {
-      console.error('Error executing code:', error);
-      return <div>Error rendering component.</div>;
-    }
-      
-  };
-*/
-  // Render the compiled JSX dynamically
-  return <>{func(data)}</>;
-
+  try {
+    var func = loadModule(code);
+    // Render the compiled JSX dynamically
+    return <>{func(data)}</>;
+  } catch (error) {
+    return <ErrorDisplay error={error} />;
+  }
 };
 
 export default DynamicComponent;
