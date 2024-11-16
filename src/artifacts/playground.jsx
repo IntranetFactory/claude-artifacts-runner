@@ -1,70 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import tailwindConfig from '../../tailwind.config.js';
 import DynamicComponent from '../components/dynamicComponent';
+import PlaygroundEditor from '../components/playgroundEditor.jsx';
 
-var code = `
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-const Counter = () => {
-  const [count, setCount] = useState(0);
-
-  return (
-    <Card className="w-64">
-      <CardHeader>
-        <CardTitle className="text-center xxx">Counter</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        <div className="text-4xl font-bold">{count}</div>
-        <Button 
-          onClick={() => setCount(count + 1)}
-          className="w-full"
-        >
-          Increment
-        </Button>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default Counter;
-`
-const addTailwindCDNWithConfig = () => {
-  // Check if the Tailwind CDN script is already added
-  if (!document.querySelector('script[src="https://cdn.tailwindcss.com"]')) {
-    // Add the Tailwind CSS script to the head
-    const tailwindScript = document.createElement('script');
-    tailwindScript.src = "https://cdn.tailwindcss.com";
-    document.head.appendChild(tailwindScript);
-
-
-    // Wait for the script to load
-    tailwindScript.onload = () => {
-
-      // Inject the Tailwind configuration dynamically
-      const configScript = document.createElement('script');
-      configScript.innerHTML = `
-          tailwind.config = ${JSON.stringify(config)};
-        
-        `;
-      document.head.appendChild(configScript);
-    };
-  }
-};
 
 // The Playground component
 const Playground = () => {
 
+  const [editorContent, setEditorContent] = useState(`
+import React from 'react';
+const HelloWorld = () => {
+  return (
+    <div className="p-4 text-center">
+      <h1 className="text-3xl font-bold text-blue-600">Hello, World!</h1>
+    </div>
+  );
+};
+
+export default HelloWorld;
+    `);
+
   const data = {};
   var config = {};
   config.theme = tailwindConfig.theme;
-
-
-  var shade = 500;
-
-  code = code.replace('xxx', `text-teal-${shade}`);
 
   return (
     <>
@@ -75,7 +34,16 @@ const Playground = () => {
     tailwind.config =  ${JSON.stringify(config, null, 2)} 
   `}</script>
       </Helmet>
-      <DynamicComponent code={code} data={data} />
+
+      <div className="h-screen p-4">
+      <PlaygroundEditor
+        initialText={editorContent}
+        onChange={setEditorContent}
+        className="h-full"
+      />
+    </div>
+
+      <DynamicComponent code={editorContent} />
     </>
   );
 };
