@@ -38,8 +38,6 @@ const loadModule = (sourceCode) => {
     transforms: ['imports', 'jsx'], // Ensure it handles ESM and JSX
   }).code;
 
-  console.log(transformedCode);
-
   // Create a function to execute the transformed code
   const moduleFunction = new Function('require', 'exports', 'module', transformedCode);
 
@@ -73,6 +71,12 @@ export default HelloWorld;
 
 const DynamicComponent = ({ code, data }) => {
   // Function to compile and execute the JSX code
+  if(!code) {
+    return (
+      <>
+      </>
+    )
+  }
   try {
     var func = loadModule(code);
     // Render the compiled JSX dynamically

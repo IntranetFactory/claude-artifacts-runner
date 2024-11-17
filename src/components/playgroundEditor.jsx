@@ -134,14 +134,58 @@ const PlaygroundEditor = ({
           { role: "user", content: promptText }
         ]
       });
-      const generatedCode = response.choices[0].message.content;
-      handleTextChange(generatedCode);
+      const result = response.choices[0].message.content;
+      const artifact = extractAntArtifact(result);
+      console.log(result);
+
+      const newFileName = artifact.identifier ? `${artifact.identifier}.jsx` : 'output.jsx';
+      setFileName(newFileName); // Update state with new filename
+
+      handleTextChange(artifact.code);
     } catch (error) {
       console.error('OpenAI API error:', error);
     } finally {
       setIsGenerating(false);
     }
   };
+
+  function extractAntArtifact(content) {
+    const artifactRegex = /<antArtifact(?:\s+[^>]*)?>[\s\S]*?<\/antArtifact>/;
+    const attributeRegex = /(\w+)="([^"]*)"/g;
+  
+    const artifactMatch = content.match(artifactRegex);
+  
+    if (!artifactMatch) {
+      // Return default values if <antArtifact> is not found
+      return {
+        type: "unknown",
+        identifier: "",
+        title: "",
+        code: "",
+      };
+    }
+  
+    // Extract attributes from the <antArtifact> opening tag
+    const openingTag = artifactMatch[0].match(/<antArtifact(?:\s+[^>]*)?>/)?.[0] || "";
+    const attributes = {};
+    let match;
+    while ((match = attributeRegex.exec(openingTag)) !== null) {
+      attributes[match[1]] = match[2];
+    }
+  
+    // Extract the inner content (code)
+    const innerContent = artifactMatch[0]
+      .replace(/<antArtifact(?:\s+[^>]*)?>/, "") // Remove opening tag
+      .replace(/<\/antArtifact>/, "") // Remove closing tag
+      .trim();
+  
+    return {
+      type: attributes.type || "unknown",
+      identifier: attributes.identifier || "",
+      title: attributes.title || "",
+      code: innerContent || "",
+    };
+  }
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -232,11 +276,17 @@ const PlaygroundEditor = ({
             <EditorSkeleton />
           ) : (
             <Editor
-              height="100%"
-              defaultLanguage="javascript" 
-              value={text}
-              onChange={handleTextChange}
-              theme="vs-dark"
+            value={text}
+            onChange={(value) => handleTextChange(value)}
+            height="100%"
+            width="100%"
+            language="javascript" // Set language to 'javascript' for JSX support
+            theme="vs-dark" // Optional: Choose a theme ('vs-dark' or 'light')
+            wrapperClassName="w-full h-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            options={{
+              tabSize: 2,
+              minimap: { enabled: false }
+            }}
             />
           )}
         </ResizablePanel>

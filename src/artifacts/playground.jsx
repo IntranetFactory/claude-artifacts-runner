@@ -43,7 +43,6 @@ export default HelloWorld;
       />
     </div>
 
-      <DynamicComponent code={editorContent} />
     </>
   );
 };
