@@ -74,7 +74,7 @@ const PlaygroundEditor = ({
   }, [initialText]);
 
   // Notify parent component of changes
-  const handleTextChange = (newText) => {
+  const handleCodeChange = (newText) => {
     setCode(newText);
     onChange(newText);
   };
@@ -95,7 +95,19 @@ const PlaygroundEditor = ({
       const file = await fileHandle.getFile();
       setFileName(file.name);
       const content = await file.text();
-      handleTextChange(content);
+
+      // Check for wrapped prompt
+      const promptRegex = /\/\* <prompt>\n([\s\S]*?)\n<\/prompt> \*\/\n\n([\s\S]*)/;
+      const match = content.match(promptRegex);
+
+      if (match) {
+        const [, extractedPrompt, extractedCode] = match;
+        setPromptText(extractedPrompt);
+        handleCodeChange(extractedCode);
+      } else {
+        // No prompt found, use entire content as code
+        handleCodeChange(content);
+      }
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error loading file:', err);
@@ -120,9 +132,16 @@ const PlaygroundEditor = ({
       // Get the file name chosen by user
       const newFileName = handle.name;
       setFileName(newFileName); // Update state with new filename
+      
+      // Create wrapped prompt text
+      const wrappedPrompt = promptText ? `/* <prompt>\n${promptText}\n</prompt> */\n\n` : '';
+      
+      // Combine with existing content
+      const contentToSave = wrappedPrompt + code; // Changed from text to code
 
+      // Create a writable stream and write the content
       const writable = await handle.createWritable();
-      await writable.write(code);
+      await writable.write(contentToSave);
       await writable.close();
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -132,7 +151,7 @@ const PlaygroundEditor = ({
   };
 
   const handleClear = () => {
-    handleTextChange('');
+    handleCodeChange('');
   };
 
   const handleGenerate = async () => {
@@ -153,7 +172,7 @@ const PlaygroundEditor = ({
       const newFileName = artifact.identifier ? `${artifact.identifier}.jsx` : 'output.jsx';
       setFileName(newFileName); // Update state with new filename
 
-      handleTextChange(artifact.code);
+      handleCodeChange(artifact.code);
     } catch (error) {
       console.error('OpenAI API error:', error);
     } finally {
@@ -289,7 +308,7 @@ const PlaygroundEditor = ({
           ) : (
             <Editor
             value={code}
-            onChange={(value) => handleTextChange(value)}
+            onChange={(value) => handleCodeChange(value)}
             height="100%"
             width="100%"
             language="javascript" // Set language to 'javascript' for JSX support
