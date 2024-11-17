@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Recharts from 'recharts';
 import * as Button from '@/components/ui/button';
 import * as Card from '@/components/ui/card';
+import * as ApiAccess from '@/components/apiAccess';
 
 import { transform } from 'sucrase';
 
@@ -11,6 +12,7 @@ const allowedModules = {
   recharts: Recharts,
   '@/components/ui/button': Button,
   '@/components/ui/card': Card,
+  '@/components/apiAccess': ApiAccess,
 };
 
 const ErrorDisplay = ({ error }) => (
@@ -22,6 +24,31 @@ const ErrorDisplay = ({ error }) => (
   </div>
 );
 
+// Add ErrorBoundary component at top
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 border-2 border-red-500 rounded-md bg-red-50">
+          <h3 className="text-red-700 font-semibold mb-2">Render Error</h3>
+          <pre className="text-sm text-red-600 whitespace-pre-wrap">
+            {this.state.error?.message || 'Invalid component rendered'}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Custom `require` function
 const require = (specifier) => {
@@ -69,18 +96,23 @@ export default HelloWorld;
 
 
 
-const DynamicComponent = ({ code, data }) => {
-  // Function to compile and execute the JSX code
-  if(!code) {
-    return (
-      <>
-      </>
-    )
-  }
+// Update DynamicComponent to use error boundary and type checking
+const DynamicComponent = ({ code, data = {} }) => {
+  if (!code) return null;
+
   try {
-    var func = loadModule(code);
-    // Render the compiled JSX dynamically
-    return <>{func(data)}</>;
+    const func = loadModule(code);
+    
+    // Type checking
+    if (typeof func !== 'function') {
+      throw new Error('Component must be a function');
+    }
+
+    return (
+      <ErrorBoundary>
+        {func(data)}
+      </ErrorBoundary>
+    );
   } catch (error) {
     return <ErrorDisplay error={error} />;
   }

@@ -137,7 +137,7 @@ const PlaygroundEditor = ({
       });
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
-      console.log(result);
+      console.log(response);
 
       const newFileName = artifact.identifier ? `${artifact.identifier}.jsx` : 'output.jsx';
       setFileName(newFileName); // Update state with new filename
