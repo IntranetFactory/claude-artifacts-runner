@@ -51,7 +51,7 @@ const PlaygroundEditor = ({
   onChange = () => { },
   className = ''
 }) => {
-  const [text, setText] = useState(initialText);
+  const [code, setCode] = useState(initialText);
   const [fileName, setFileName] = useState(null);
   const [systemPromptText, setSystemPromptText] = useState(systemPromptDefault);
   const [promptText, setPromptText] = useState('');
@@ -70,12 +70,12 @@ const PlaygroundEditor = ({
 
   // Update internal state when initialText prop changes
   useEffect(() => {
-    setText(initialText);
+    setCode(initialText);
   }, [initialText]);
 
   // Notify parent component of changes
   const handleTextChange = (newText) => {
-    setText(newText);
+    setCode(newText);
     onChange(newText);
   };
 
@@ -122,7 +122,7 @@ const PlaygroundEditor = ({
       setFileName(newFileName); // Update state with new filename
 
       const writable = await handle.createWritable();
-      await writable.write(text);
+      await writable.write(code);
       await writable.close();
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -288,7 +288,7 @@ const PlaygroundEditor = ({
             <EditorSkeleton />
           ) : (
             <Editor
-            value={text}
+            value={code}
             onChange={(value) => handleTextChange(value)}
             height="100%"
             width="100%"
@@ -304,7 +304,7 @@ const PlaygroundEditor = ({
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={33.33} minSize={20}>
-          <Preview text={text} />
+          <Preview text={code} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
