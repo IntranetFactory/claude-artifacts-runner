@@ -128,11 +128,12 @@ const PlaygroundEditor = ({
     try {
       setIsGenerating(true);
       const response = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPromptText },
           { role: "user", content: promptText }
-        ]
+        ],
+        temperature: 0 
       });
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
