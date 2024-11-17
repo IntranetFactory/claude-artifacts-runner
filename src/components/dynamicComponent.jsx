@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Recharts from 'recharts';
 import * as Button from '@/components/ui/button';
 import * as Card from '@/components/ui/card';
-import * as ApiAccess from '@/components/apiAccess';
+import ApiAccess from '@/components/apiAccess';
 
 import { transform } from 'sucrase';
 

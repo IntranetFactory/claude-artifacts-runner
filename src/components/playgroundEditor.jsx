@@ -3,6 +3,7 @@ import { Save, Upload, Trash2, TrendingUp } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import DynamicComponent from './dynamicComponent';
 import { Button } from '@/components/ui/button';
+import  ErrorBoundary  from  '@/components/errorBoundary';
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -18,7 +19,9 @@ const openai = new OpenAI({
 });
 
 const Preview = ({ text }) => (
-  <DynamicComponent code={text} />
+  <ErrorBoundary key={text}>
+    <DynamicComponent code={text} />
+  </ErrorBoundary>
 );
 
 const EditorSkeleton = () => (
@@ -63,7 +66,7 @@ const PlaygroundEditor = ({
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => setIsDarkMode(e.matches);
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -132,10 +135,10 @@ const PlaygroundEditor = ({
       // Get the file name chosen by user
       const newFileName = handle.name;
       setFileName(newFileName); // Update state with new filename
-      
+
       // Create wrapped prompt text
       const wrappedPrompt = promptText ? `/* <prompt>\n${promptText}\n</prompt> */\n\n` : '';
-      
+
       // Combine with existing content
       const contentToSave = wrappedPrompt + code; // Changed from text to code
 
@@ -156,6 +159,7 @@ const PlaygroundEditor = ({
 
   const handleGenerate = async () => {
     try {
+      setCode('')
       setIsGenerating(true);
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -163,7 +167,7 @@ const PlaygroundEditor = ({
           { role: "system", content: systemPromptText },
           { role: "user", content: promptText }
         ],
-        temperature: 0 
+        temperature: 0
       });
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
@@ -183,9 +187,9 @@ const PlaygroundEditor = ({
   function extractAntArtifact(content) {
     const artifactRegex = /<antArtifact(?:\s+[^>]*)?>[\s\S]*?<\/antArtifact>/;
     const attributeRegex = /(\w+)="([^"]*)"/g;
-  
+
     const artifactMatch = content.match(artifactRegex);
-  
+
     if (!artifactMatch) {
       // Return default values if <antArtifact> is not found
       return {
@@ -195,7 +199,7 @@ const PlaygroundEditor = ({
         code: "",
       };
     }
-  
+
     // Extract attributes from the <antArtifact> opening tag
     const openingTag = artifactMatch[0].match(/<antArtifact(?:\s+[^>]*)?>/)?.[0] || "";
     const attributes = {};
@@ -203,13 +207,13 @@ const PlaygroundEditor = ({
     while ((match = attributeRegex.exec(openingTag)) !== null) {
       attributes[match[1]] = match[2];
     }
-  
+
     // Extract the inner content (code)
     const innerContent = artifactMatch[0]
       .replace(/<antArtifact(?:\s+[^>]*)?>/, "") // Remove opening tag
       .replace(/<\/antArtifact>/, "") // Remove closing tag
       .trim();
-  
+
     return {
       type: attributes.type || "unknown",
       identifier: attributes.identifier || "",
@@ -253,7 +257,7 @@ const PlaygroundEditor = ({
         <div className="w-px h-4 bg-gray-300" />
         <Button
           onClick={handleGenerate}  // Replace alert with handleGenerate function
-          variant="ghost" 
+          variant="ghost"
           className="flex items-center gap-2 h-8"
           size="sm"
           disabled={!promptText.trim()}
@@ -274,7 +278,7 @@ const PlaygroundEditor = ({
             <ResizablePanel defaultSize={67}>
               <div className="flex h-full flex-col px-6">
                 <h3 className="font-semibold mb-2">Prompt</h3>
-                <textarea 
+                <textarea
                   className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter prompt..."
                   value={promptText}
@@ -282,14 +286,14 @@ const PlaygroundEditor = ({
                 />
               </div>
             </ResizablePanel>
-            
+
             <ResizableHandle />
-            
+
             {/* System Prompt Panel */}
             <ResizablePanel defaultSize={33}>
               <div className="flex h-full flex-col pt-6 px-6">
                 <h3 className="font-semibold mb-2">System Prompt</h3>
-                <textarea 
+                <textarea
                   className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter system prompt..."
                   value={systemPromptText}
@@ -299,7 +303,7 @@ const PlaygroundEditor = ({
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
-      
+
         <ResizableHandle />
 
         <ResizablePanel defaultSize={33.33} minSize={20}>
@@ -307,17 +311,17 @@ const PlaygroundEditor = ({
             <EditorSkeleton />
           ) : (
             <Editor
-            value={code}
-            onChange={(value) => handleCodeChange(value)}
-            height="100%"
-            width="100%"
-            language="javascript" // Set language to 'javascript' for JSX support
-            theme={isDarkMode ? "vs-dark" : "vs-light"}
-            wrapperClassName="w-full h-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            options={{
-              tabSize: 2,
-              minimap: { enabled: false }
-            }}
+              value={code}
+              onChange={(value) => handleCodeChange(value)}
+              height="100%"
+              width="100%"
+              language="javascript" // Set language to 'javascript' for JSX support
+              theme={isDarkMode ? "vs-dark" : "vs-light"}
+              wrapperClassName="w-full h-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              options={{
+                tabSize: 2,
+                minimap: { enabled: false }
+              }}
             />
           )}
         </ResizablePanel>
