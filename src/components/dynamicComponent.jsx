@@ -79,28 +79,12 @@ const loadModule = (sourceCode) => {
 };
 
 
-// Example usage:
-const code1 = `
-import React from 'react';
 
-const HelloWorld = () => {
-  return (
-    <div className="p-4 text-center">
-      <h1 className="text-3xl font-bold text-blue-600">Hello, World!</h1>
-    </div>
-  );
-};
-
-export default HelloWorld;
-`;
-
-
-
-// Update DynamicComponent to use error boundary and type checking
-const DynamicComponent = ({ code, data = {} }) => {
+const DynamicComponent = React.memo(({ code }) => {
   if (!code) return null;
 
   try {
+    console.log(code);
     const func = loadModule(code);
     
     // Type checking
@@ -110,12 +94,14 @@ const DynamicComponent = ({ code, data = {} }) => {
 
     return (
       <ErrorBoundary>
-        {func(data)}
+        {func()}
       </ErrorBoundary>
     );
   } catch (error) {
     return <ErrorDisplay error={error} />;
   }
-};
+}, (prevProps, nextProps) => {
+  return prevProps.code === nextProps.code;
+});
 
 export default DynamicComponent;
