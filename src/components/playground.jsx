@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import tailwindConfig from '../../tailwind.config.js';
-import DynamicComponent from '../components/dynamicComponent';
-import PlaygroundEditor from '../components/playgroundEditor.jsx';
+import DynamicComponent from './dynamicComponent.jsx';
+import PlaygroundEditor from './playgroundEditor.jsx';
 
 
 // The Playground component

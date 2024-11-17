@@ -56,6 +56,17 @@ const PlaygroundEditor = ({
   const [systemPromptText, setSystemPromptText] = useState(systemPromptDefault);
   const [promptText, setPromptText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => setIsDarkMode(e.matches);
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   // Update internal state when initialText prop changes
   useEffect(() => {
@@ -240,30 +251,30 @@ const PlaygroundEditor = ({
         {/* Left Panel */}
         <ResizablePanel defaultSize={33.33} minSize={20}>
           <ResizablePanelGroup direction="vertical" className="h-full">
-            {/* System Prompt Panel */}
-            <ResizablePanel defaultSize={50}>
-              <div className="flex h-full flex-col pb-6 px-6">
-                <h3 className="font-semibold mb-2">System Prompt</h3>
-                <textarea 
-                  className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter system prompt..."
-                  value={systemPromptText}
-                  onChange={(e) => setSystemPromptText(e.target.value)}
-                />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle />
-            
             {/* Prompt Panel */}
-            <ResizablePanel defaultSize={50}>
-              <div className="flex h-full flex-col pt-6 px-6">
+            <ResizablePanel defaultSize={67}>
+              <div className="flex h-full flex-col px-6">
                 <h3 className="font-semibold mb-2">Prompt</h3>
                 <textarea 
                   className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter prompt..."
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle />
+            
+            {/* System Prompt Panel */}
+            <ResizablePanel defaultSize={33}>
+              <div className="flex h-full flex-col pt-6 px-6">
+                <h3 className="font-semibold mb-2">System Prompt</h3>
+                <textarea 
+                  className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter system prompt..."
+                  value={systemPromptText}
+                  onChange={(e) => setSystemPromptText(e.target.value)}
                 />
               </div>
             </ResizablePanel>
@@ -282,7 +293,7 @@ const PlaygroundEditor = ({
             height="100%"
             width="100%"
             language="javascript" // Set language to 'javascript' for JSX support
-            theme="vs-dark" // Optional: Choose a theme ('vs-dark' or 'light')
+            theme={isDarkMode ? "vs-dark" : "vs-light"}
             wrapperClassName="w-full h-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             options={{
               tabSize: 2,
