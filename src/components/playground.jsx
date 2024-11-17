@@ -8,19 +8,6 @@ import PlaygroundEditor from './playgroundEditor.jsx';
 // The Playground component
 const Playground = () => {
 
-  const [editorContent, setEditorContent] = useState(`
-import React from 'react';
-const HelloWorld = () => {
-  return (
-    <div className="p-4 text-center">
-      <h1 className="text-3xl font-bold text-blue-600">Hello, World!</h1>
-    </div>
-  );
-};
-
-export default HelloWorld;
-    `);
-
   const data = {};
   var config = {};
   config.theme = tailwindConfig.theme;
@@ -28,7 +15,7 @@ export default HelloWorld;
   return (
     <>
       <Helmet>
-        <title>XXX</title>
+        <title>Playground</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>{`
     tailwind.config =  ${JSON.stringify(config, null, 2)} 
@@ -37,9 +24,8 @@ export default HelloWorld;
 
       <div className="h-screen p-4">
       <PlaygroundEditor
-        initialText={editorContent}
-        onChange={setEditorContent}
         className="h-full"
+        key="stable-key"
       />
     </div>
 

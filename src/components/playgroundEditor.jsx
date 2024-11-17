@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Save, Upload, Trash2, TrendingUp } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import DynamicComponent from './dynamicComponent';
 import { Button } from '@/components/ui/button';
-import  ErrorBoundary  from  '@/components/errorBoundary';
+import ErrorBoundary from '@/components/errorBoundary';
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -15,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Enable client-side usage
+  dangerouslyAllowBrowser: true, // Enable client-side usage
+  baseURL: import.meta.env.VITE_OPENAI_BASE_URL
 });
 
 const Preview = ({ text }) => (
@@ -54,7 +55,7 @@ const PlaygroundEditor = ({
   onChange = () => { },
   className = ''
 }) => {
-  const [code, setCode] = useState(initialText);
+  const [code, setCode] = useState('');
   const [fileName, setFileName] = useState(null);
   const [systemPromptText, setSystemPromptText] = useState(systemPromptDefault);
   const [promptText, setPromptText] = useState('');
@@ -62,6 +63,12 @@ const PlaygroundEditor = ({
   const [isDarkMode, setIsDarkMode] = useState(
     window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+
+  // Add component lifecycle logging
+  useEffect(() => {
+    console.log('PlaygroundEditor mounted');
+    return () => console.log('PlaygroundEditor unmounting');
+  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -71,15 +78,10 @@ const PlaygroundEditor = ({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Update internal state when initialText prop changes
-  useEffect(() => {
-    setCode(initialText);
-  }, [initialText]);
 
   // Notify parent component of changes
   const handleCodeChange = (newText) => {
     setCode(newText);
-    onChange(newText);
   };
 
   const handleLoad = async () => {
@@ -104,7 +106,9 @@ const PlaygroundEditor = ({
       const match = content.match(promptRegex);
 
       if (match) {
-        const [, extractedPrompt, extractedCode] = match;
+        var [, extractedPrompt, extractedCode] = match;
+        extractedPrompt = extractedPrompt.trim();
+
         setPromptText(extractedPrompt);
         handleCodeChange(extractedCode);
       } else {
@@ -134,10 +138,9 @@ const PlaygroundEditor = ({
 
       // Get the file name chosen by user
       const newFileName = handle.name;
-      setFileName(newFileName); // Update state with new filename
-
+    
       // Create wrapped prompt text
-      const wrappedPrompt = promptText ? `/* <prompt>\n${promptText}\n</prompt> */\n\n` : '';
+      const wrappedPrompt = promptText ? `/* <prompt>\n\n${promptText}\n\n</prompt> */\n\n` : '';
 
       // Combine with existing content
       const contentToSave = wrappedPrompt + code; // Changed from text to code
@@ -146,6 +149,9 @@ const PlaygroundEditor = ({
       const writable = await handle.createWritable();
       await writable.write(contentToSave);
       await writable.close();
+
+      setFileName(newFileName); // Update state with new filename
+
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error saving file:', err);
@@ -279,7 +285,7 @@ const PlaygroundEditor = ({
               <div className="flex h-full flex-col px-6">
                 <h3 className="font-semibold mb-2">Prompt</h3>
                 <textarea
-                  className="flex-1 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 mb-4 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter prompt..."
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
@@ -307,6 +313,7 @@ const PlaygroundEditor = ({
         <ResizableHandle />
 
         <ResizablePanel defaultSize={33.33} minSize={20}>
+
           {isGenerating ? (
             <EditorSkeleton />
           ) : (
@@ -317,17 +324,28 @@ const PlaygroundEditor = ({
               width="100%"
               language="javascript" // Set language to 'javascript' for JSX support
               theme={isDarkMode ? "vs-dark" : "vs-light"}
-              wrapperClassName="w-full h-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              wrapperClassName="w-full h-full p-2 pr-6 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               options={{
                 tabSize: 2,
-                minimap: { enabled: false }
+                minimap: { enabled: false },
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  useShadows: true,
+                  verticalScrollbarSize: 10,
+                  horizontalScrollbarSize: 10
+                },
+                automaticLayout: true,
               }}
             />
           )}
+
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={33.33} minSize={20}>
-          <Preview text={code} />
+          <div className="px-4">
+            <Preview text={code} />
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

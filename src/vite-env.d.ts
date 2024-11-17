@@ -2,9 +2,10 @@
 /// <reference types="vite-plugin-pages/client-react" />
 
 interface ImportMetaEnv {
-    readonly VITE_OPENAI_API_KEY: string
-  }
-  
-  interface ImportMeta {
-    readonly env: ImportMetaEnv
-  }
+  readonly VITE_OPENAI_API_KEY: string
+  readonly VITE_OPENAI_BASE_URL: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}

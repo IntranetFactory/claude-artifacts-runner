@@ -83,8 +83,7 @@ const loadModule = (sourceCode) => {
 const DynamicComponent = React.memo(({ code }) => {
   if (!code) return null;
 
-  try {
-    console.log(code);
+  try {    
     const func = loadModule(code);
     
     // Type checking
