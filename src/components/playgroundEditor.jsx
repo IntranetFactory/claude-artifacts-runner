@@ -84,6 +84,14 @@ const PlaygroundEditor = ({
     setCode(newText);
   };
 
+const fixCode = (code) => { 
+  
+  // llm makes common errors, fixing them
+  code = code.replace("import { ApiAccess } from '@/components/apiAccess';", "import ApiAccess from '@/components/apiAccess';");
+
+  return code;
+}
+
   const handleLoad = async () => {
     try {
       const [fileHandle] = await window.showOpenFilePicker({
@@ -182,7 +190,7 @@ const PlaygroundEditor = ({
       const newFileName = artifact.identifier ? `${artifact.identifier}.jsx` : 'output.jsx';
       setFileName(newFileName); // Update state with new filename
 
-      handleCodeChange(artifact.code);
+      handleCodeChange(fixCode(artifact.code));
     } catch (error) {
       console.error('OpenAI API error:', error);
     } finally {

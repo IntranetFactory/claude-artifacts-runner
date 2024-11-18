@@ -51,4 +51,5 @@ const ApiAccess = ({ url, children, ...params }) => {
   return typeof children === "function" ? children(data) : null;
 };
 
-export default ApiAccess;
+
+export default ApiAccess; 
