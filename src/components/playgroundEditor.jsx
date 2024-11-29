@@ -13,18 +13,15 @@ import systemPromptDefault from '../../systemprompt.txt?raw';
 import OpenAI from 'openai';
 import { Skeleton } from "@/components/ui/skeleton";
 import APIConfigModal from './APIConfigModal.jsx';
-
-let openai;
-
-if (import.meta.env.VITE_OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    dangerouslyAllowBrowser: true, // Enable client-side usage
-    baseURL: import.meta.env.VITE_OPENAI_BASE_URL
-  });
-} else {
-  console.warn('OpenAI API key is not provided.');
-}
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 
 const Preview = ({ text }) => (
   <ErrorBoundary key={text}>
@@ -72,6 +69,8 @@ const PlaygroundEditor = ({
   );
   
   const [isAPIConfigModalOpen, setIsAPIConfigModalOpen] = useState(false);
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   const handleAPIConfigModalOpen = () => {
     console.log('Opening API config modal');
@@ -193,14 +192,11 @@ const fixCode = (code) => {
     try {
       setCode('')
       setIsGenerating(true);
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
+      const response = await invokeOpenAI(
+         [
           { role: "system", content: systemPromptText },
           { role: "user", content: promptText }
-        ],
-        temperature: 0
-      });
+        ]);
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
       console.log(response);
@@ -210,7 +206,8 @@ const fixCode = (code) => {
 
       handleCodeChange(fixCode(artifact.code));
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      setErrorMessage(error.message || 'An error occurred while calling OpenAI')
+      setIsErrorDialogOpen(true)
     } finally {
       setIsGenerating(false);
     }
@@ -253,6 +250,46 @@ const fixCode = (code) => {
       code: innerContent || "",
     };
   }
+
+  const invokeOpenAI = async (messages) => {
+    const apiKey = localStorage.getItem('api-configuration-key');
+    const apiUrl = localStorage.getItem('api-configuration-url');
+    const modelName = localStorage.getItem('api-configuration-model');
+  
+    if (!apiKey || !modelName) {
+      handleAPIConfigModalOpen(); // Show settings modal
+      return undefined;
+    }
+  
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      baseURL: apiUrl || undefined,
+      dangerouslyAllowBrowser: true
+    });
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: modelName,
+        messages: messages,
+        stream: false
+      });
+      return completion;
+    } catch (error) {
+      console.error('Error calling OpenAI:', error);
+      throw error;
+    }
+  };
+  
+  const handleSubmit = async () => {
+    try {
+      const completion = await invokeOpenAI(messages);
+      if (completion) {
+        setResponse(completion.choices[0].message.content);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -387,6 +424,19 @@ const fixCode = (code) => {
                open={isAPIConfigModalOpen}
                onClose={handleAPIConfigModalClose}
       />
+      <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription className="text-red-500">
+              {errorMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

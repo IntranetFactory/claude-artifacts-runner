@@ -24,7 +24,7 @@ const APIConfigModal = ({ open, onClose }) => {
     if (open) {
       const savedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
       const savedApiUrl = localStorage.getItem(API_URL_STORAGE_KEY) || '';
-      const savedModelName = localStorage.getItem(MODEL_NAME_STORAGE_KEY) || 'abc';
+      const savedModelName = localStorage.getItem(MODEL_NAME_STORAGE_KEY) || 'gpt-4o-mini';
       
       setApiKey(savedApiKey);
       setApiUrl(savedApiUrl);
@@ -77,10 +77,10 @@ const APIConfigModal = ({ open, onClose }) => {
         <DialogHeader>
           <DialogTitle>API Configuration</DialogTitle>
           <DialogDescription>            
-            <div className="mt-2 text-sm text-muted-foreground">
+            <span className="mt-2 text-sm text-muted-foreground">
               Your API key and settings are stored securely in your browser's local storage. The API key is only used to authenticate requests to your chosen API server and is never transmitted to any other servers.
-            </div>
-            <br />Required fields are marked with *
+            </span>
+            <br /><br/>Required fields are marked with *
           </DialogDescription>
         </DialogHeader>
 
@@ -122,7 +122,11 @@ const APIConfigModal = ({ open, onClose }) => {
               id="api-url"
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
+              placeholder="Enter any OpenAI-compatible API endpoint"
             />
+            <span className="text-sm text-muted-foreground">
+              Any API server that implements the OpenAI API specification will work here
+            </span>
           </div>
 
         </div>
