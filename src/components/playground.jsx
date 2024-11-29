@@ -4,13 +4,15 @@ import tailwindConfig from '../../tailwind.config.js';
 import DynamicComponent from './dynamicComponent.jsx';
 import PlaygroundEditor from './playgroundEditor.jsx';
 
-
-// The Playground component
-const Playground = () => {
-
+const Playground = () => {  
   const data = {};
   var config = {};
   config.theme = tailwindConfig.theme;
+
+  useEffect(() => {
+    console.log('Playground mounted');
+    return () => console.log('Playground unmounting');
+  }, []);
 
   return (
     <>
@@ -23,15 +25,13 @@ const Playground = () => {
       </Helmet>
 
       <div className="h-screen p-4">
-      <PlaygroundEditor
-        className="h-full"
-        key="stable-key"
-      />
-    </div>
-
+        <PlaygroundEditor
+          className="h-full"
+          key="stable-key"
+        />
+      </div>
     </>
   );
 };
 
 export default Playground;
-

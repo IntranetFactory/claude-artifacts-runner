@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Save, Upload, Trash2, TrendingUp } from 'lucide-react';
+import { Save, Upload, Trash2, TrendingUp, Settings } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import DynamicComponent from './dynamicComponent';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,19 @@ import {
 import systemPromptDefault from '../../systemprompt.txt?raw';
 import OpenAI from 'openai';
 import { Skeleton } from "@/components/ui/skeleton";
+import APIConfigModal from './APIConfigModal.jsx';
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // Enable client-side usage
-  baseURL: import.meta.env.VITE_OPENAI_BASE_URL
-});
+let openai;
+
+if (import.meta.env.VITE_OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true, // Enable client-side usage
+    baseURL: import.meta.env.VITE_OPENAI_BASE_URL
+  });
+} else {
+  console.warn('OpenAI API key is not provided.');
+}
 
 const Preview = ({ text }) => (
   <ErrorBoundary key={text}>
@@ -63,6 +70,17 @@ const PlaygroundEditor = ({
   const [isDarkMode, setIsDarkMode] = useState(
     window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+  
+  const [isAPIConfigModalOpen, setIsAPIConfigModalOpen] = useState(false);
+
+  const handleAPIConfigModalOpen = () => {
+    console.log('Opening API config modal');
+    setIsAPIConfigModalOpen(true);
+  };
+
+  const handleAPIConfigModalClose = () => {
+    setIsAPIConfigModalOpen(false);
+  };
 
   // Add component lifecycle logging
   useEffect(() => {
@@ -279,6 +297,15 @@ const fixCode = (code) => {
           <TrendingUp size={16} />
           Generate
         </Button>
+        <Button
+          onClick={handleAPIConfigModalOpen}
+          variant="ghost"
+          className="flex items-center gap-2 h-8 ml-auto"
+          size="sm"
+        >
+          <Settings size={16} />
+          Settings
+        </Button>
       </div>
       <ResizablePanelGroup
         direction="horizontal"
@@ -356,6 +383,10 @@ const fixCode = (code) => {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+      <APIConfigModal 
+               open={isAPIConfigModalOpen}
+               onClose={handleAPIConfigModalClose}
+      />
     </div>
   );
 };
