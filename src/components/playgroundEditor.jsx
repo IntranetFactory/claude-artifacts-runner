@@ -127,7 +127,7 @@ const fixCode = (code) => {
       const content = await file.text();
 
       // Check for wrapped prompt
-      const promptRegex = /\/\* <prompt>\n([\s\S]*?)\n<\/prompt> \*\/\n\n([\s\S]*)/;
+      const promptRegex = /\/\* <react-artifact>\n([\s\S]*?)\n<\/react-artifact> \*\/\n\n([\s\S]*)/;
       const match = content.match(promptRegex);
 
       if (match) {
@@ -165,7 +165,7 @@ const fixCode = (code) => {
       const newFileName = handle.name;
     
       // Create wrapped prompt text
-      const wrappedPrompt = promptText ? `/* <prompt>\n\n${promptText}\n\n</prompt> */\n\n` : '';
+      const wrappedPrompt = promptText ? `/* <react-artifact>\n\n${promptText}\n\n</react-artifact> */\n\n` : '';
 
       // Combine with existing content
       const contentToSave = wrappedPrompt + code; // Changed from text to code
@@ -199,6 +199,11 @@ const fixCode = (code) => {
         ]);
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
+
+      if(!artifact.code) {
+        artifact.code = `/*\n ${extractAntThinkingText(result)} \n*/ `;
+      }
+
       console.log(response);
 
       const newFileName = artifact.identifier ? `${artifact.identifier}.jsx` : 'output.jsx';
@@ -212,6 +217,11 @@ const fixCode = (code) => {
       setIsGenerating(false);
     }
   };
+
+  function extractAntThinkingText(input) {
+    const match = input.match(/<antThinking>(.*?)<\/antThinking>/);
+    return match ? match[1] : "";
+  }
 
   function extractAntArtifact(content) {
     const artifactRegex = /<antArtifact(?:\s+[^>]*)?>[\s\S]*?<\/antArtifact>/;
@@ -274,22 +284,13 @@ const fixCode = (code) => {
         stream: false
       });
       return completion;
-    } catch (error) {
-      console.error('Error calling OpenAI:', error);
+    } catch (error) {      
+      setErrorMessage(error.message || 'An error occurred while calling OpenAI')
+      setIsErrorDialogOpen(true)
       throw error;
     }
-  };
-  
-  const handleSubmit = async () => {
-    try {
-      const completion = await invokeOpenAI(messages);
-      if (completion) {
-        setResponse(completion.choices[0].message.content);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  }; 
+
 
   return (
     <div className={`flex flex-col ${className}`}>
