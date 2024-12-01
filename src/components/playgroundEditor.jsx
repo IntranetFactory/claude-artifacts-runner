@@ -339,30 +339,46 @@ const PlaygroundEditor = ({
     }
   };
 
+  function supportsFileSystemAccess() {
+    if ("showOpenFilePicker" in window) {
+      try {
+        return window.self === window.top;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  const hasFileSystemSupport = supportsFileSystemAccess();
 
   return (
     <div className={`flex flex-col ${className}`}>
       <div className="flex items-center gap-1 p-1 mb-4 bg-gray-100 rounded">
-        <Button
-          onClick={handleLoad}
-          variant="ghost"
-          className="flex items-center gap-2 h-8"
-          size="sm"
-        >
-          <Upload size={16} />
-          Load
-        </Button>
-        <div className="w-px h-4 bg-gray-300" />
-        <Button
-          onClick={handleSave}
-          variant="ghost"
-          className="flex items-center gap-2 h-8"
-          size="sm"
-        >
-          <Save size={16} />
-          Save
-        </Button>
-        <div className="w-px h-4 bg-gray-300" />
+        {hasFileSystemSupport && (
+          <>
+            <Button
+              onClick={handleLoad}
+              variant="ghost"
+              className="flex items-center gap-2 h-8"
+              size="sm"
+            >
+              <Upload size={16} />
+              Load
+            </Button>
+            <div className="w-px h-4 bg-gray-300" />
+            <Button
+              onClick={handleSave}
+              variant="ghost"
+              className="flex items-center gap-2 h-8"
+              size="sm"
+            >
+              <Save size={16} />
+              Save
+            </Button>
+            <div className="w-px h-4 bg-gray-300" />
+          </>
+        )}
         <Button
           onClick={handleClear}
           variant="ghost"
