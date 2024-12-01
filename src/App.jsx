@@ -7,9 +7,16 @@ import DefaultPage from './artifacts/default';
 import './App.css'
 
 function App() {
+
   const customRoutes = [
-    { path: '/', element: <Layout><DefaultPage /></Layout> },
-    { path: '/copilot', element: <Layout><Copilot /></Layout> },
+    { 
+      path: '/', 
+      element: (
+        <Layout>
+          {import.meta.env.VITE_DISABLE_COPILOT ? <DefaultPage /> : <Copilot />}
+        </Layout>
+      )
+    },    
     ...routes.map((route) => ({
       ...route,
       element: <Layout>{route.element}</Layout>,
