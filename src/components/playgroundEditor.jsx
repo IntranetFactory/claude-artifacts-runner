@@ -69,8 +69,38 @@ const PlaygroundEditor = ({
   );
 
   const [isAPIConfigModalOpen, setIsAPIConfigModalOpen] = useState(false);
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Notify parent component of changes
+  const handleCodeChange = (newText) => {
+    setCode(newText);
+  };
+
+  const fixCode = (code) => {
+
+    // llm makes common errors, fixing them
+    code = code.replace("import { ApiAccess } from '@/components/apiAccess';", "import ApiAccess from '@/components/apiAccess';");
+
+    return code;
+  }
+
+  const handleSetArtifact = (content) => {
+    // Check for wrapped prompt
+    const promptRegex = /\/\* <artifact-specification>\n([\s\S]*?)\n<\/artifact-specification> \*\/\n\n([\s\S]*)/;
+    const match = content.match(promptRegex);
+
+    if (match) {
+      var [, extractedPrompt, extractedCode] = match;
+      extractedPrompt = extractedPrompt.trim();
+
+      setPromptText(extractedPrompt);
+      handleCodeChange(extractedCode);
+    } else {
+      // No prompt found, use entire content as code
+      handleCodeChange(content);
+    }
+  };
 
   const handleAPIConfigModalOpen = () => {
     console.log('Opening API config modal');
@@ -95,19 +125,11 @@ const PlaygroundEditor = ({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  useEffect(() => {
+    handleSetArtifact(initialText);
+  }, [initialText]);
 
-  // Notify parent component of changes
-  const handleCodeChange = (newText) => {
-    setCode(newText);
-  };
 
-  const fixCode = (code) => {
-
-    // llm makes common errors, fixing them
-    code = code.replace("import { ApiAccess } from '@/components/apiAccess';", "import ApiAccess from '@/components/apiAccess';");
-
-    return code;
-  }
 
   const handleLoad = async () => {
     try {
@@ -126,20 +148,7 @@ const PlaygroundEditor = ({
       setFileName(file.name);
       const content = await file.text();
 
-      // Check for wrapped prompt
-      const promptRegex = /\/\* <react-artifact>\n([\s\S]*?)\n<\/react-artifact> \*\/\n\n([\s\S]*)/;
-      const match = content.match(promptRegex);
-
-      if (match) {
-        var [, extractedPrompt, extractedCode] = match;
-        extractedPrompt = extractedPrompt.trim();
-
-        setPromptText(extractedPrompt);
-        handleCodeChange(extractedCode);
-      } else {
-        // No prompt found, use entire content as code
-        handleCodeChange(content);
-      }
+      handleSetArtifact(content);
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error loading file:', err);
@@ -165,7 +174,7 @@ const PlaygroundEditor = ({
       const newFileName = handle.name;
 
       // Create wrapped prompt text
-      const wrappedPrompt = promptText ? `/* <react-artifact>\n\n${promptText}\n\n</react-artifact> */\n\n` : '';
+      const wrappedPrompt = promptText ? `/* <artifact-specification>\n\n${promptText}\n\n</artifact-specification> */\n\n` : '';
 
       // Combine with existing content
       const contentToSave = wrappedPrompt + code; // Changed from text to code
@@ -201,10 +210,10 @@ const PlaygroundEditor = ({
       if (!response) return;
 
       const result = response.choices[0].message.content;
-      const artifact = extractAntArtifact(result);
+      const artifact = extractAtArtifact(result);
 
       if (!artifact.code) {
-        artifact.code = `/*\n ${extractAntThinkingText(result)} \n*/ `;
+        artifact.code = `/*\n ${extractAtThinkingText(result)} \n*/ `;
       }
 
       console.log(response);
@@ -221,19 +230,19 @@ const PlaygroundEditor = ({
     }
   };
 
-  function extractAntThinkingText(input) {
-    const match = input.match(/<antThinking>(.*?)<\/antThinking>/);
+  function extractAtThinkingText(input) {
+    const match = input.match(/<atThinking>(.*?)<\/atThinking>/);
     return match ? match[1] : "";
   }
 
-  function extractAntArtifact(content) {
-    const artifactRegex = /<antArtifact(?:\s+[^>]*)?>[\s\S]*?<\/antArtifact>/;
+  function extractAtArtifact(content) {
+    const artifactRegex = /<atArtifact(?:\s+[^>]*)?>[\s\S]*?<\/atArtifact>/;
     const attributeRegex = /(\w+)="([^"]*)"/g;
 
     const artifactMatch = content.match(artifactRegex);
 
     if (!artifactMatch) {
-      // Return default values if <antArtifact> is not found
+      // Return default values if <atArtifact> is not found
       return {
         type: "unknown",
         identifier: "",
@@ -242,8 +251,8 @@ const PlaygroundEditor = ({
       };
     }
 
-    // Extract attributes from the <antArtifact> opening tag
-    const openingTag = artifactMatch[0].match(/<antArtifact(?:\s+[^>]*)?>/)?.[0] || "";
+    // Extract attributes from the <atArtifact> opening tag
+    const openingTag = artifactMatch[0].match(/<atArtifact(?:\s+[^>]*)?>/)?.[0] || "";
     const attributes = {};
     let match;
     while ((match = attributeRegex.exec(openingTag)) !== null) {
@@ -252,8 +261,8 @@ const PlaygroundEditor = ({
 
     // Extract the inner content (code)
     const innerContent = artifactMatch[0]
-      .replace(/<antArtifact(?:\s+[^>]*)?>/, "") // Remove opening tag
-      .replace(/<\/antArtifact>/, "") // Remove closing tag
+      .replace(/<atArtifact(?:\s+[^>]*)?>/, "") // Remove opening tag
+      .replace(/<\/atArtifact>/, "") // Remove closing tag
       .trim();
 
     return {

@@ -3,6 +3,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_DISABLE_COPILOT: string  
+  readonly VITE_LOAD_ALLOWLIST: string  
 }
 
 interface ImportMeta {

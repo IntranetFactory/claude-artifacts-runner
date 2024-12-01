@@ -1,8 +1,8 @@
-/* <react-artifact>
+/* <artifact-specification>
 
 show data from https://jsonplaceholder.typicode.com/users in table
 
-</react-artifact> */
+</artifact-specification> */
 
 import React from 'react';
   import ApiAccess from '@/components/apiAccess';
