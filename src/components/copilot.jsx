@@ -33,6 +33,26 @@ const Playground = () => {
 
   useEffect(() => {
     console.log('Playground mounted');
+    
+    // Check localStorage first
+    try {
+      const saved = localStorage.getItem('artifact_wip');
+      if (saved) {
+        const parsedData = JSON.parse(saved);
+        const timeDiff = (new Date().getTime() - new Date(parsedData.timestamp).getTime()) / 1000;
+        
+        if (timeDiff <= 9) {
+          console.log("Found fresh saved content in localStorage");
+          setCode(parsedData.content);          
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load from localStorage:', e);
+    }
+
+    // Check URL for artifact to load
     const params = new URLSearchParams(window.location.search);
     const artifactUrl = params.get('load');
     
@@ -69,7 +89,7 @@ const Playground = () => {
         <script>{`
           setTimeout(() => {
             tailwind.config = ${JSON.stringify(config, null, 2)};
-          }, 1);     
+          }, 100);     
         `}</script>
       </Helmet>
 

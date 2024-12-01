@@ -157,27 +157,35 @@ const PlaygroundEditor = ({
   };
 
   const handleSave = async () => {
+    // Create wrapped prompt text
+    const wrappedPrompt = promptText ? `/* <artifact-specification>\n\n${promptText}\n\n</artifact-specification> */\n\n` : '';
+
+    // Combine with existing content
+    const contentToSave = wrappedPrompt + code;
+
     try {
+      // Create object with content and UTC timestamp
+      const saveData = {
+        content: contentToSave,
+        timestamp: new Date().toISOString()
+      };
+
+      // Store as JSON string
+      localStorage.setItem('artifact_wip', JSON.stringify(saveData));
+
+      // File system save
       const handle = await window.showSaveFilePicker({
         suggestedName: fileName,
-        types: [
-          {
-            description: 'JSX Files',
-            accept: {
-              'text/jsx': ['.jsx']
-            }
+        types: [{
+          description: 'JSX Files',
+          accept: {
+            'text/jsx': ['.jsx']
           }
-        ]
+        }]
       });
 
       // Get the file name chosen by user
       const newFileName = handle.name;
-
-      // Create wrapped prompt text
-      const wrappedPrompt = promptText ? `/* <artifact-specification>\n\n${promptText}\n\n</artifact-specification> */\n\n` : '';
-
-      // Combine with existing content
-      const contentToSave = wrappedPrompt + code; // Changed from text to code
 
       // Create a writable stream and write the content
       const writable = await handle.createWritable();
@@ -186,16 +194,46 @@ const PlaygroundEditor = ({
 
       setFileName(newFileName); // Update state with new filename
 
+      return false;
+
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error saving file:', err);
+        // Still save to localStorage even if file save fails
+        localStorage.setItem('artifact_wip', contentToSave);
       }
+      return false;
     }
   };
 
   const handleClear = () => {
     handleCodeChange('');
   };
+
+  function wrapCommentBlock(input, maxLineLength = 70) {
+    debugger;
+    const words = input.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length + 1 > maxLineLength) {
+        lines.push(currentLine.trim());
+        currentLine = '';
+      }
+      currentLine += word + ' ';
+    });
+
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+
+    // Wrap the lines with comment block
+    const commentBlock = '/*\n' +
+      lines.map(line => `   ${line}`).join('\n') +
+      '\n*/';
+    return commentBlock;
+  }
 
   const handleGenerate = async () => {
     try {
@@ -212,9 +250,7 @@ const PlaygroundEditor = ({
       const result = response.choices[0].message.content;
       const artifact = extractAtArtifact(result);
 
-      if (!artifact.code) {
-        artifact.code = `/*\n ${extractAtThinkingText(result)} \n*/ `;
-      }
+      artifact.code = `${wrapCommentBlock(extractAtThinkingText(result))}\n\n${artifact.code}`;
 
       console.log(response);
 
@@ -368,10 +404,10 @@ const PlaygroundEditor = ({
             {/* Prompt Panel */}
             <ResizablePanel defaultSize={67}>
               <div className="flex h-full flex-col px-6">
-                <h3 className="font-semibold mb-2">Prompt</h3>
+                <h3 className="font-semibold mb-2">Specification</h3>
                 <textarea
                   className="flex-1 mb-4 w-full resize-none rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter prompt..."
+                  placeholder="Specifiy the component you want to generate..."
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
                 />
@@ -427,7 +463,7 @@ const PlaygroundEditor = ({
 
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel defaultSize={33.33} minSize={20}>
+        <ResizablePanel defaultSize={33.34} minSize={20}>
           <div className="px-4">
             <Preview text={code} />
           </div>
