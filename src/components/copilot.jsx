@@ -17,7 +17,7 @@ const Playground = () => {
   return (
     <>
       <Helmet>
-        <title>Playground</title>
+        <title>React Artifacts Copilot</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>{`
     tailwind.config =  ${JSON.stringify(config, null, 2)} 

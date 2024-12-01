@@ -67,7 +67,7 @@ const PlaygroundEditor = ({
   const [isDarkMode, setIsDarkMode] = useState(
     window.matchMedia('(prefers-color-scheme: dark)').matches
   );
-  
+
   const [isAPIConfigModalOpen, setIsAPIConfigModalOpen] = useState(false);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -101,13 +101,13 @@ const PlaygroundEditor = ({
     setCode(newText);
   };
 
-const fixCode = (code) => { 
-  
-  // llm makes common errors, fixing them
-  code = code.replace("import { ApiAccess } from '@/components/apiAccess';", "import ApiAccess from '@/components/apiAccess';");
+  const fixCode = (code) => {
 
-  return code;
-}
+    // llm makes common errors, fixing them
+    code = code.replace("import { ApiAccess } from '@/components/apiAccess';", "import ApiAccess from '@/components/apiAccess';");
+
+    return code;
+  }
 
   const handleLoad = async () => {
     try {
@@ -163,7 +163,7 @@ const fixCode = (code) => {
 
       // Get the file name chosen by user
       const newFileName = handle.name;
-    
+
       // Create wrapped prompt text
       const wrappedPrompt = promptText ? `/* <react-artifact>\n\n${promptText}\n\n</react-artifact> */\n\n` : '';
 
@@ -193,14 +193,17 @@ const fixCode = (code) => {
       setCode('')
       setIsGenerating(true);
       const response = await invokeOpenAI(
-         [
+        [
           { role: "system", content: systemPromptText },
           { role: "user", content: promptText }
         ]);
+
+      if (!response) return;
+
       const result = response.choices[0].message.content;
       const artifact = extractAntArtifact(result);
 
-      if(!artifact.code) {
+      if (!artifact.code) {
         artifact.code = `/*\n ${extractAntThinkingText(result)} \n*/ `;
       }
 
@@ -265,12 +268,12 @@ const fixCode = (code) => {
     const apiKey = localStorage.getItem('api-configuration-key');
     const apiUrl = localStorage.getItem('api-configuration-url');
     const modelName = localStorage.getItem('api-configuration-model');
-  
+
     if (!apiKey || !modelName) {
       handleAPIConfigModalOpen(); // Show settings modal
       return undefined;
     }
-  
+
     const openai = new OpenAI({
       apiKey: apiKey,
       baseURL: apiUrl || undefined,
@@ -284,12 +287,12 @@ const fixCode = (code) => {
         stream: false
       });
       return completion;
-    } catch (error) {      
+    } catch (error) {
       setErrorMessage(error.message || 'An error occurred while calling OpenAI')
       setIsErrorDialogOpen(true)
       throw error;
     }
-  }; 
+  };
 
 
   return (
@@ -421,9 +424,9 @@ const fixCode = (code) => {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
-      <APIConfigModal 
-               open={isAPIConfigModalOpen}
-               onClose={handleAPIConfigModalClose}
+      <APIConfigModal
+        open={isAPIConfigModalOpen}
+        onClose={handleAPIConfigModalClose}
       />
       <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
         <AlertDialogContent>
