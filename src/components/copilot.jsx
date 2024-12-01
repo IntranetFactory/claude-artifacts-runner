@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import tailwindConfig from '../../tailwind.config.js';
+import tailwindConfig from '../../tailwind.config.mjs';
 import PlaygroundEditor from './playgroundEditor.jsx';
 import {
   AlertDialog,
