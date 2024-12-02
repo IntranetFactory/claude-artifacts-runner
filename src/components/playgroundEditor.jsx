@@ -210,8 +210,7 @@ const PlaygroundEditor = ({
     handleCodeChange('');
   };
 
-  function wrapCommentBlock(input, maxLineLength = 70) {
-    debugger;
+  function wrapCommentBlock(input, maxLineLength = 70) {    
     const words = input.split(' ');
     let lines = [];
     let currentLine = '';

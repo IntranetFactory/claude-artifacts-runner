@@ -48,6 +48,8 @@ import * as ToggleGroup from '@/components/ui/toggle-group';
 import * as Toggle from '@/components/ui/toggle';
 import * as Tooltip from '@/components/ui/tooltip';
 import * as UseToast from '@/components/ui/use-toast';
+import * as LibUtil from '@/lib/utils';
+import * as lucideReact from 'lucide-react';
 import ApiAccess from '@/components/apiAccess';
 
 import { transform } from 'sucrase';
@@ -105,8 +107,10 @@ const allowedModules = {
   '@/components/ui/tooltip': Tooltip,
   '@/components/ui/use-toast': UseToast,
   '@/components/apiAccess': ApiAccess,
+  '@/lib/utils': LibUtil,
+  'lucide-react': lucideReact
 };
-
+ 
 const ErrorDisplay = ({ error }) => (
   <div className="p-4 border-2 border-red-500 rounded-md bg-red-50">
     <h3 className="text-red-700 font-semibold mb-2">Transformation Error</h3>
@@ -188,7 +192,7 @@ const DynamicComponent = React.memo(({ code }) => {
         {func()}
       </ErrorBoundary>
     );
-  } catch (error) {
+  } catch (error) {    
     return <ErrorDisplay error={error} />;
   }
 }, (prevProps, nextProps) => {
