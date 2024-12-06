@@ -53,7 +53,13 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
+        },        
+      },
+      backgroundColor: {
+        'ghost-hover': {
+          DEFAULT: 'hsl(var(--muted) / 0.1)',
+          dark: 'hsl(var(--muted) / 0.3)'
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
