@@ -111,13 +111,14 @@ Before you begin, ensure you have the following installed:
 - `tsconfig.json`: TypeScript configuration
 - `tailwind.config.js`: Tailwind CSS configuration
 - `package.json`: all the required packages are registered here.
+- `artifacs/`: Contains the React Artifacts
 
 ## Usage
 
 1. Generate a React component using Claude on the Artifacts environment.
-2. Copy the generated component code.
-3. Paste the code into `src/artifact-component.tsx`, completely replacing the file contents.
-4. If you have `npm run dev` running, the page should refresh automatically to display the new component.
+2. Copy the generated component code to a new file in `artifacs/` for example `artifacts\clock.jsx`.
+4. If you have `npm run dev` running, the url of the artifact is based on the file name so `artifacts\clock.jsx` can be accessed as `http://localhost:5173/clock`
+5. `http://localhost:5173/` returns `artifacts\default.tsx`
 
 ## Customization
 
