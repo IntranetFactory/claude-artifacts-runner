@@ -84,7 +84,7 @@ const Playground = () => {
   return (
     <>
       <Helmet>
-        <title>React Artifacts Copilot</title>
+        <title>React Artifacts Coding Agent</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>{`
           setTimeout(() => {

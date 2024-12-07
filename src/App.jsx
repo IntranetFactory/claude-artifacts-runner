@@ -2,7 +2,7 @@ import React from 'react';
 import { useRoutes } from 'react-router-dom';
 import routes from 'virtual:generated-pages-react';
 import Layout from './components/layout';
-import Copilot from './components/copilot';
+import CodingAgent from './components/CodingAgent';
 import DefaultPage from './artifacts/default';
 import './App.css'
 
@@ -13,7 +13,7 @@ function App() {
       path: '/', 
       element: (
         <Layout>
-          {import.meta.env.VITE_DISABLE_COPILOT ? <DefaultPage /> : <Copilot />}
+          {import.meta.env.VITE_DISABLE_AGENT ? <DefaultPage /> : <CodingAgent />}
         </Layout>
       )
     },    
