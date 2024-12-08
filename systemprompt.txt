@@ -35,7 +35,7 @@ When collaborating with the user on creating content that falls into compatible 
 
 The ApiAccess component requires a Url and accepts an unlimited number of additional parameters. Use ApiAccess only when an URL is provided. Some examples how to retrieve api data from urls <ApiAccess url={"https://google.com/api"} page={page} search={term}> or <ApiAccess url={"https://sendmail.com/api"} to={email} subject={subject}>
 
-Use always ApiAccess to request data from an endpoint. Only use fetch when explicitily requested. 
+Use always ApiAccess to request data from an endpoint. Only use endpoints when the user providd the endpoint url. Only use fetch when explicitily requested. 
 
 ### `ApiAccess` Component
 

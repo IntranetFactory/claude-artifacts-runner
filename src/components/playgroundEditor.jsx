@@ -324,6 +324,16 @@ const PlaygroundEditor = ({
       dangerouslyAllowBrowser: true
     });
 
+    // workaround openai o1* models do not accept system prompt
+    if(modelName.startsWith("o1")) {  
+      messages.forEach(message => {
+        if (message.role === "system") {
+            message.role = "assistant";
+        }
+    });
+      console.log(messages);
+    }
+
     try {
       const completion = await openai.chat.completions.create({
         model: modelName,
